@@ -1,7 +1,5 @@
 # Q1 - Huffman Coding in python
 # Source: https://www.programiz.com/dsa/huffman-coding
-
-# Creating tree nodes
 class NodeTree(object):
     """
     A class used to represent a node of a binary tree.
