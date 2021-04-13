@@ -27,7 +27,7 @@ class NodeTree(object):
         "Returns the node converted into a string"
         return '%s_%s' % (self.left, self.right)
 
-def huffman_code_tree(node, left=True, binString=''):
+def huffman_code_tree(node, binString=''):
     """
     Returns the huffman code given a huffman tree
 
@@ -35,9 +35,6 @@ def huffman_code_tree(node, left=True, binString=''):
     ----------
     node: NodeTree
         The root node of the huffman tree
-    left : bool
-        A boolean representing whether the node is
-        the left child (False otherwise)
     binString : str
         The encoded string of the node
     """
@@ -47,8 +44,8 @@ def huffman_code_tree(node, left=True, binString=''):
     (l, r) = node.children()
     d = dict()
 
-    d.update(huffman_code_tree(l, True, binString + '0'))
-    d.update(huffman_code_tree(r, False, binString + '1'))
+    d.update(huffman_code_tree(l, binString + '0'))
+    d.update(huffman_code_tree(r, binString + '1'))
 
     return d
 
