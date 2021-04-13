@@ -2,7 +2,20 @@ import string
 
 L = 7
 
-def lz77(s_buffer, la_buffer):
+def compute_codeword(s_buffer, la_buffer):
+    """
+    Finds the longest prefix in la_buffer that begins in s_buffer,
+    and computes the appropriate codeword (d, l, c)
+
+    Parameters
+    ----------
+    s_buffer: str
+        Search buffer containing the past occurrences of
+        the message.
+    la_buffer: str
+        Look-Ahead Buffer containing (a part of) the message
+        to encode.
+    """
     prefix = la_buffer[0]
     codeword = [0, 0, prefix]
     
@@ -21,28 +34,39 @@ def lz77(s_buffer, la_buffer):
     
     return tuple(codeword)
 
-def main():
-    search_buffer = [' ' for i in range(L)]
-    look_ahead_buffer = list('abracadabrad')
-    codewords = []
+def lz77(s_buffer, la_buffer):
+    """
+    Encodes a sequence using the LZ77 Algorithm. 
 
-    while look_ahead_buffer:
-        code = lz77(''.join(search_buffer), ''.join(look_ahead_buffer))
+    Parameters
+    ----------
+    s_buffer: str
+        Search buffer containing the past occurrences of
+        the message.
+    la_buffer: str
+        Look-Ahead Buffer containing (a part of) the message
+        to encode.
+    """
+    codewords = []
+    while la_buffer:
+        code = compute_codeword(s_buffer, la_buffer)
         codewords.append(code)
 
         l = code[1]
-        look_ahead_buffer, prefix = look_ahead_buffer[l+1:], look_ahead_buffer[0:l+1]
-        search_buffer += prefix
+        la_buffer, prefix = la_buffer[l+1:], la_buffer[0:l+1]
+        s_buffer += prefix
 
-        search_buffer = search_buffer[-L:]
+        s_buffer = s_buffer[-L:]
+    
+    return codewords
 
-        print('Search: ', search_buffer)
-        print('LA: ', look_ahead_buffer)
-        print('Code: ', code)
+def main():
+    search_buffer = ' ' * L
+    look_ahead_buffer = 'abracadabrad'
 
-    print('--------------- DONE ---------------')
+    codewords = lz77(search_buffer, look_ahead_buffer)
+
     print(codewords)
-    print(search_buffer)
 
 if __name__ == "__main__":
     main()
