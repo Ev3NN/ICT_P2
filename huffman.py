@@ -77,6 +77,7 @@ def main():
 
     nodes = build_tree(freq)
     huffmanCode = huffman_code_tree(nodes[0][0])
+    
     print(' Char | Huffman code ')
     print('----------------------')
     for (char, _) in freq:
