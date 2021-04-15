@@ -4,7 +4,6 @@
 #include <functional>
 #include <iostream>
 #include <unordered_map>
-#include <unordered_map>
 #include <vector>
 
 using bit = int;
@@ -81,14 +80,10 @@ namespace std {
 template <>
 struct hash<Word> {
     std::size_t operator()(const Word &k) const {
-        using std::hash;
-        using std::size_t;
-        using std::string;
-
-        return ((hash<int>()(k.rev_value) ^ (hash<int>()(k.len) << 1)) >> 1);
+        return ((std::hash<int>()(k.rev_value) ^ (std::hash<int>()(k.len) << 1)) >> 1);
     }
 };
-} // namespace std
+}
 
 template <class WordType>
 class LempelZivDict {
@@ -245,26 +240,33 @@ std::ostream &operator<<(std::ostream &out, const std::vector<T> &v) {
     return out << ']';
 }
 
-int main() {
+void course_example() {
     using namespace std;
     // [[1], [0, 0], [0, 1, 1], [1, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]
     vector<bit> msg{1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0};
     Encoder example;
     example.encode(msg);
-    cout << example.get_encoded() << endl;
+    // cout << example.get_encoded() << endl;
 
-    std::cout << "original length: " << msg.size() << std::endl;
-    std::cout << "compressed length: " << example.get_encoded().size() << std::endl;
+    cout << "original length: " << msg.size() << endl;
+    cout << "compressed length: " << example.get_encoded().size() << endl;
 
-    cout << decode(example.get_encoded()) << endl;
+    vector<bit> msg_decoded = decode(example.get_encoded());
+    // cout << msg_decoded << endl;
+    if (msg_decoded != msg)
+        cerr << "msg error!" << endl;
+}
 
-    std::ifstream f("genome.txt");
+void genome_ascii() {
+    using namespace std;
+
+    ifstream f("genome.txt");
     if (!f.is_open()) {
-        std::cerr << "unable to open file!" << std::endl;
+        cerr << "unable to open file!" << endl;
         exit(1);
     }
 
-    // special re-encoding because the file has the wrong format
+    // skip newline, keep byte encoding for other
     char c;
     int count = 0;
     vector<bit> genome;
@@ -281,13 +283,80 @@ int main() {
     const vector<bit> &encoded = genome_enc.get_encoded();
 
     // 7668456
-    std::cout << "original length: " << genome.size() << std::endl;
+    cout << "original length: " << genome.size() << endl;
     // 3243053
-    std::cout << "compressed length: " << encoded.size() << std::endl;
+    cout << "compressed length: " << encoded.size() << endl;
     // ratio: 7668456/3243053 ~ 2.36
 
     // they match :)
     //const vector<bit> decoded = decode(encoded);
     //if (decoded != genome)
     //    cerr << "decoded do not match raw!";
+}
+
+void genome_bin() {
+    using namespace std;
+
+    ifstream f("genome.txt");
+    if (!f.is_open()) {
+        cerr << "unable to open file!" << endl;
+        exit(1);
+    }
+
+    // better re-encoding to have shorter input
+    char c;
+    int count = 0;
+    vector<bit> genome;
+    while (f >> c) {
+        if (--count == 0) break;
+        switch (c) {
+        case 'A':
+            genome.push_back(0);
+            genome.push_back(0);
+            break;
+        case 'T':
+            genome.push_back(0);
+            genome.push_back(1);
+            break;
+        case 'C':
+            genome.push_back(1);
+            genome.push_back(0);
+            break;
+        case 'G':
+            genome.push_back(1);
+            genome.push_back(1);
+            break;
+        case '\n':
+            continue;
+        default:
+            break;
+        }
+    }
+
+    Encoder genome_enc;
+    genome_enc.encode(genome);
+    const vector<bit> &encoded = genome_enc.get_encoded();
+
+    // 1917114
+    cout << "original length: " << genome.size() << endl;
+    // 2095205
+    cout << "compressed length: " << encoded.size() << endl;
+    // ratio: 1917114/2095205 ~ 0,91500068
+
+    // they match :)
+    //const vector<bit> decoded = decode(encoded);
+    //if (decoded != genome)
+    //    cerr << "decoded do not match raw!";
+}
+
+int main() {
+    using namespace std;
+    cout << "example" << endl;
+    course_example();
+
+    cout << "genome (ascii)" << endl;
+    genome_ascii();
+
+    cout << "genome (bin)" << endl;
+    genome_bin();
 }
