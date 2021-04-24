@@ -1,94 +1,53 @@
 "lempelziv: implements the online Lempel-Ziv compression algorithm"
 
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Dict
+import numpy as np
 import math
 
-class LempelZivDict:
-    """dictionary implementing fast access to both key and values
-    both keys and values must be unique"""
+def binary_repr(value: int, width: int) -> np.ndarray:
+    "represent an unsigned integer < 2**32 in width bitss"
+    return np.unpackbits(np.array([value], dtype='>u8').view(np.uint8))[-width:]
 
-    def __init__(self) -> None:
-        # base dict has the empty string at value 0
-        self.store = {'': 0}
-        self.words = ['']
-        self.max_value = 1
-    
-    def contains(self, key: str) -> bool:
-        "returns weither a certain key is present in the dictionary"
-        return key in self.store
-    
-    def add(self, key: str) -> int:
-        "add a new word to the dictionary and returns its value"
-        self.store[key] = self.max_value
-        self.max_value += 1
-        self.words.append(key)
-        return self.max_value - 1
-    
-    def get_value(self, key: str) -> int:
-        "get the value of a word in the dictionary"
-        return self.store[key]
+def from_bin(repr: np.ndarray) -> int:
+    packed = np.packbits(repr)
+    return sum(print(v * (256) ** (len(packed) - i - 1)) for i, v in enumerate(packed))
 
-    def get_word(self, value: int) -> str:
-        "get the word of a value in the dictionary"
-        return self.words[value]
-
-def encode(sequence: str) -> Tuple[List[str], LempelZivDict]:
-    """encode:
-        - create a sequence encoding the sequence using the LempelZiv algorithm
-    
-    returns:
-        - an encoded sequence as a list of item
-        - a dictionary usable to make the decoding
+def encode(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
     """
+    addresses are encoded in a mixed endianess provided by numpy
+    """
+    dictionary = {b'' : 0}
 
-    mapping = LempelZivDict()
-    encoded = list()
+    next_addr = 1
 
-    if not sequence:
-        return mapping, encoded
+    prefix_key = b''
+    key = b''
 
-    # pass a buffer over the input
+    parts = []
+
     lo = 0
     for hi in range(len(sequence)+1):
-        current = sequence[lo:hi]
+        key = sequence[lo:hi].tobytes()
 
-        new_word = not mapping.contains(current)
+        new_word = key not in dictionary
 
-        # wait until the word is not in the mapping and add it
         if new_word or hi == len(sequence):
-            prefix_addr = mapping.get_value(sequence[lo:(hi-1)])
+            prefix_addr = dictionary[prefix_key]
             if new_word:
-                current_addr = mapping.add(current)
+                dictionary[key] = next_addr
 
-            if current_addr == 1:
-                # encode in 0 bits
-                encoded.append(current[-1])
+            if next_addr == 1:
+                # encode addr in 0 bits (skipped)
+                pass
             else:
-                addr_len = math.ceil(math.log2(current_addr))
-                encoded.append(f"{prefix_addr:0{addr_len}b}{current[-1]}")
+                addr_len = math.ceil(math.log2(next_addr))
+                parts.append(binary_repr(prefix_addr, addr_len))
+            parts.append(sequence[hi-1:hi])
+
+            next_addr += 1
 
             lo = hi
-
-    return mapping, encoded
+        else:
+            prefix_key = key
     
-
-def decode(mapping: LempelZivDict, encoded: Sequence[str]) -> str:
-    """decode
-        - mapping: the dictionary that was returned with the encoding
-        - encoded: the list of encoded value from the LempelZiv algorithm
-
-    returns:
-        - the original sequence
-    """
-
-    decoded = ''
-    for s in encoded:
-        # empty address means 0 which is mapped to the empty string
-        if len(s) == 1:
-            decoded += s
-            continue
-        # get the address of the prefix
-        val = int(s[:-1], 2)
-        decoded += mapping.get_word(val) + s[-1]
-    return decoded
-
+    return np.concatenate(parts), dictionary
