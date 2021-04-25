@@ -24,7 +24,7 @@ def write(filein: str, fileout: str) -> None:
 
             buffer = fin.readframes(-1)
             data_in = np.frombuffer(buffer, dtype=np.uint8)
-            data_out = channel.alter(data_in)
+            data_out = channel.alter_uint(data_in)
             fout.writeframesraw(data_out)
 
 def plot(filename: str) -> None:
@@ -38,7 +38,7 @@ def compare_plot(filename: str) -> None:
     time_end = len(values) / framerate
     time_vals = np.linspace(0, time_end, len(values))
 
-    altered = channel.alter(values)
+    altered = channel.alter_uint(values)
     write(filename, f'altered.wav')
     
     _, [ax1, ax2] = plt.subplots(2, 1, sharex=True)
