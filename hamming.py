@@ -11,10 +11,13 @@ __MATRIX__ = np.array([
     [0, 0, 0, 1, 0, 1, 1]], dtype=np.uint8)
 
 __MASK__ = np.array([
-    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(8)
+    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(256)
 ])
 
-def encode(message: np.ndarray) -> np.ndarray:
+def encode_uint(message: np.ndarray) -> np.ndarray:
+    return encode_bits(np.unpackbits(message))
+
+def encode_bits(message: np.ndarray) -> np.ndarray:
     """encodes a message vector into a vector of bits
 
     params
@@ -27,13 +30,11 @@ def encode(message: np.ndarray) -> np.ndarray:
 
     """
 
-    unpacked = np.unpackbits(message)
-
     return np.concatenate([
-        np.dot(unpacked[i:i+4], __MATRIX__)%2 for i in range(0, len(unpacked), 4)
+        np.dot(message[i:i+4], __MATRIX__)%2 for i in range(0, len(message), 4)
     ])
 
-def check(part: np.ndarray) -> np.ndarray:
+def check(part: np.ndarray) -> Tuple[np.ndarray, int]:
     "part: np.ndarray(shape=(7,), dtype=np.uint8)"
 
     # compute the hamming distance with all known codes
@@ -43,25 +44,41 @@ def check(part: np.ndarray) -> np.ndarray:
     # get the closest one
     idx = dist.argmin()
 
-    if dist[idx] < 2:
-        return __MASK__[idx], 0
-    return np.zeros((0,)), 1
+    return __MASK__[idx], dist[idx]
+
+def decode_bits(message: np.ndarray) -> np.ndarray:
+
+    parts = []
+    for i in range(0, len(message), 7):
+        decoded, dist = check(message[i:i+7])
+        if dist > 1:
+            raise Exception(f'unable to decode {message[i:i+7]=}')
+        parts.append(decoded[:4])
+    return np.concatenate(parts)
+
+def decode_uint(message: np.ndarray) -> np.ndarray:
+    return np.packbits(decode_bits(message))
 
 def main():
-    msg = np.random.random((4,)) < 0.5
+    msg = np.random.random((256,)) < 0.5
     msg = msg.view(np.uint8)
 
-    enc = np.dot(msg, __MATRIX__)%2
-    print(f'{enc=}')
+    encoded = encode_bits(msg)
+    decoded = decode_bits(encoded)
 
-    dec = np.dot(enc, __CTRL__)%2
-    print(f'{dec=}')
+    if (msg != decoded).any():
+        print('decoding failed!')
+        print(f'    {msg=}\n{decoded=}')
+        print(f'{__MASK__}')
 
-    for i in range(7):
-        err = np.zeros((7,), dtype=np.uint8)
-        err[i] = 1
-        dec = np.dot(err, __CTRL__) % 2
-        print(f'{i}: {dec}')
+    msg = np.random.randint(0, 256, size=(1000,), dtype=np.uint8)
+    encoded = encode_uint(msg)
+    decoded = decode_uint(encoded)
+
+    if (msg != decoded).any():
+        print('decoding failed')
+        print(f'    {msg=}\n{decoded=}')
+        print(f'{__MASK__}')
 
 if __name__ == "__main__":
-    print(f'{__MASK__=}')
+    main()
