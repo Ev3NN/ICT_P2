@@ -51,7 +51,9 @@ def compare_plot(filename: str, transform=eye) -> None:
 
     plt.show()
 
-    
+
 if __name__ == "__main__":
-    compare_plot(sys.argv[1], channel.alter_uint)
-    compare_plot(sys.argv[1], lambda x: hamming.decode_uint(channel.alter_bits(hamming.encode_uint(x))))
+    compare_plot('sound.wav', channel.alter_uint)
+    compare_plot('sound.wav', lambda x: hamming.decode_uint(channel.alter_bits(hamming.encode_uint(x))))
+    write('sound.wav', 'sound_altered.wav', channel.alter_uint)
+    write('sound.wav', 'sound_hamming_altered.wav', lambda x: hamming.decode_uint(channel.alter_bits(hamming.encode_uint(x))))
