@@ -54,4 +54,4 @@ def compare_plot(filename: str, transform=eye) -> None:
     
 if __name__ == "__main__":
     compare_plot(sys.argv[1], channel.alter_uint)
-    compare_plot(sys.argv[1], lambda x: hamming.decode_uint(channel.alter_uint(hamming.encode_uint(x))))
+    compare_plot(sys.argv[1], lambda x: hamming.decode_uint(channel.alter_bits(hamming.encode_uint(x))))
