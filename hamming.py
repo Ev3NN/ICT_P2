@@ -2,8 +2,6 @@
 
 import numpy as np
 
-from typing import Tuple
-
 __MATRIX__ = np.array([
     [1, 0, 0, 0, 1, 0, 1],
     [0, 1, 0, 0, 1, 1, 0],
@@ -14,27 +12,32 @@ __MASK__ = np.array([
     np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(16)
 ])
 
+
 def encode_uint(message: np.ndarray) -> np.ndarray:
+    """encodes a message of uint8 to a binary format with Hamming (7, 4) code
+
+    - message: a np.ndarray(shape=(n,), dtype=np.uint8) the message to encode
+    - returns: a np.ndarray(shape=(14*n,), dtype=np.uint8) containing binary \
+        values at each element
+    """
     return encode_bits(np.unpackbits(message))
 
+
 def encode_bits(message: np.ndarray) -> np.ndarray:
-    """encodes a message vector into a vector of bits
+    """encodes a message of bits to a binary format with Hamming (7, 4) code
 
-    params
-    ======
-    - message: np.ndarray(dtype=np.uint8) vector of uin8 values
-
-    returns
-    =======
-    - np.ndarray(dtype=np.uint8) vector of bits
-
+    - message: a np.ndarray(shape=(4*n,), dtype=np.uint8) the bits of the \
+        message to encode
+    - returns: a np.ndarray(shape=(7*n,), dtype=np.uint8) containing binary \
+        values at each element
     """
 
     return np.concatenate([
-        np.dot(message[i:i+4], __MATRIX__)%2 for i in range(0, len(message), 4)
+        np.dot(message[i:i+4], __MATRIX__) % 2 for i in range(0, len(message), 4)
     ])
 
-def check(part: np.ndarray) -> np.ndarray:
+
+def __check(part: np.ndarray) -> np.ndarray:
     "part: np.ndarray(shape=(7,), dtype=np.uint8)"
 
     # compute the hamming distance with all known codes
@@ -46,14 +49,29 @@ def check(part: np.ndarray) -> np.ndarray:
 
     return __MASK__[idx]
 
+
 def decode_bits(message: np.ndarray) -> np.ndarray:
+    """decodes a message of bits with Hamming (7, 4) code to a binary format.
+
+    - message: a np.ndarray(shape=(7*n,), dtype=np.uint8) the bits of the \
+        encoded message with Hamming (7, 4) correction code
+    - returns: a np.ndarray(shape=(4*n,), dtype=np.uint8) containing binary \
+        values at each element for the most likely message
+    """
 
     parts = []
     for i in range(0, len(message), 7):
-        decoded = check(message[i:i+7])
+        decoded = __check(message[i:i+7])
         parts.append(decoded[:4])
     return np.concatenate(parts)
 
-def decode_uint(message: np.ndarray) -> np.ndarray:
-    return np.packbits(decode_bits(message))
 
+def decode_uint(message: np.ndarray) -> np.ndarray:
+    """decodes a message of bits with Hamming (7, 4) code to a uint8 format.
+
+    - message: a np.ndarray(shape=(14*n,), dtype=np.uint8) the bits of the \
+        encoded message with Hamming (7, 4) correction code
+    - returns: a np.ndarray(shape=(n,), dtype=np.uint8) containing uint8 \
+        values at each element for the most likely message that was encoded
+    """
+    return np.packbits(decode_bits(message))
