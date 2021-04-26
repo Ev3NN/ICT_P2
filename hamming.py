@@ -11,7 +11,7 @@ __MATRIX__ = np.array([
     [0, 0, 0, 1, 0, 1, 1]], dtype=np.uint8)
 
 __MASK__ = np.array([
-    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(256)
+    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(16)
 ])
 
 def encode_uint(message: np.ndarray) -> np.ndarray:
@@ -34,7 +34,7 @@ def encode_bits(message: np.ndarray) -> np.ndarray:
         np.dot(message[i:i+4], __MATRIX__)%2 for i in range(0, len(message), 4)
     ])
 
-def check(part: np.ndarray) -> Tuple[np.ndarray, int]:
+def check(part: np.ndarray) -> np.ndarray:
     "part: np.ndarray(shape=(7,), dtype=np.uint8)"
 
     # compute the hamming distance with all known codes
@@ -44,15 +44,13 @@ def check(part: np.ndarray) -> Tuple[np.ndarray, int]:
     # get the closest one
     idx = dist.argmin()
 
-    return __MASK__[idx], dist[idx]
+    return __MASK__[idx]
 
 def decode_bits(message: np.ndarray) -> np.ndarray:
 
     parts = []
     for i in range(0, len(message), 7):
-        decoded, dist = check(message[i:i+7])
-        if dist > 1:
-            raise Exception(f'unable to decode {message[i:i+7]=}')
+        decoded = check(message[i:i+7])
         parts.append(decoded[:4])
     return np.concatenate(parts)
 
