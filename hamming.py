@@ -59,26 +59,3 @@ def decode_bits(message: np.ndarray) -> np.ndarray:
 def decode_uint(message: np.ndarray) -> np.ndarray:
     return np.packbits(decode_bits(message))
 
-def main():
-    msg = np.random.random((256,)) < 0.5
-    msg = msg.view(np.uint8)
-
-    encoded = encode_bits(msg)
-    decoded = decode_bits(encoded)
-
-    if (msg != decoded).any():
-        print('decoding failed!')
-        print(f'    {msg=}\n{decoded=}')
-        print(f'{__MASK__}')
-
-    msg = np.random.randint(0, 256, size=(1000,), dtype=np.uint8)
-    encoded = encode_uint(msg)
-    decoded = decode_uint(encoded)
-
-    if (msg != decoded).any():
-        print('decoding failed')
-        print(f'    {msg=}\n{decoded=}')
-        print(f'{__MASK__}')
-
-if __name__ == "__main__":
-    main()
