@@ -10,12 +10,14 @@ class TestHamming(u.TestCase):
         enc = encode_bits(msg)
         diff = enc - exp
 
-        self.assertFalse(diff.any(), msg=f'\n\t{enc}=encode_bits({msg})\n\t{exp}')
-            
+        self.assertFalse(
+            diff.any(), msg=f'\n\t{enc}=encode_bits({msg})\n\t{exp}')
+
         dec = decode_bits(enc)
         diff = dec - msg
 
-        self.assertFalse(diff.any(), msg=f'\n\t{dec}=decode_bits({dec})\n\t{msg}')
+        self.assertFalse(
+            diff.any(), msg=f'\n\t{dec}=decode_bits({dec})\n\t{msg}')
 
     def test_bit_pairs(self):
         pairs = {
@@ -47,12 +49,14 @@ class TestHamming(u.TestCase):
         enc = encode_uint(msg)
         diff = enc - exp
 
-        self.assertFalse(diff.any(), msg=f'\n\t{enc}=encode_uint({msg})\n\t{exp}')
-            
+        self.assertFalse(
+            diff.any(), msg=f'\n\t{enc}=encode_uint({msg})\n\t{exp}')
+
         dec = decode_uint(enc)
         diff = dec - msg
 
-        self.assertFalse(diff.any(), msg=f'\n\t{dec}=decode_uint({dec})\n\t{msg}')
+        self.assertFalse(
+            diff.any(), msg=f'\n\t{dec}=decode_uint({dec})\n\t{msg}')
 
     def test_uint_pairs(self):
         pairs = {
@@ -93,7 +97,7 @@ class TestHamming(u.TestCase):
 
             diff = decode_bits(enc) - exp
             self.assertFalse(diff.any())
-    
+
     def test_random_bits(self):
         msg = np.random.random((256,)) < 0.5
         msg = msg.view(np.uint8)
@@ -107,25 +111,13 @@ class TestHamming(u.TestCase):
 
     def test_random_uints(self):
         msg = np.random.randint(0, 256, size=(256,), dtype=np.uint8)
-        
+
         encoded = encode_uint(msg)
         decoded = decode_uint(encoded)
 
         diff = decoded - msg
 
         self.assertFalse(diff.any())
-    
-    def test_too_many_errors(self):
-        msg = np.random.randint(0, 256, size=(256,), dtype=np.uint8)
-        encoded = encode_uint(msg)
-
-        mask = np.random.random(size=encoded.shape) < 0.3
-        encoded = np.bitwise_xor(encoded, mask)
-
-        decoded = decode_uint(encoded)
-
-        diff = decoded - msg
-        self.assertTrue(diff.any())
 
 
 if __name__ == "__main__":
