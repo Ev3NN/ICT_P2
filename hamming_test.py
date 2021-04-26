@@ -1,12 +1,15 @@
+"test cases for hamming.py"
+
 import unittest as u
 
-from numpy import array, uint8
-from hamming import *
+from numpy import array, uint8, random
+from hamming import decode_uint, encode_uint, encode_bits, decode_bits
 
 
 class TestHamming(u.TestCase):
+    "handles testing hamming function"
 
-    def check_bit_pair(self, msg: np.array, exp: np.array):
+    def check_bit_pair(self, msg: array, exp: array):
         enc = encode_bits(msg)
         diff = enc - exp
 
@@ -45,7 +48,7 @@ class TestHamming(u.TestCase):
 
             self.check_bit_pair(msg, exp)
 
-    def check_uint_pair(self, msg: np.array, exp: np.array):
+    def check_uint_pair(self, msg: array, exp: array):
         enc = encode_uint(msg)
         diff = enc - exp
 
@@ -99,8 +102,8 @@ class TestHamming(u.TestCase):
             self.assertFalse(diff.any())
 
     def test_random_bits(self):
-        msg = np.random.random((256,)) < 0.5
-        msg = msg.view(np.uint8)
+        msg = random.random((256,)) < 0.5
+        msg = msg.view(uint8)
 
         encoded = encode_bits(msg)
         decoded = decode_bits(encoded)
@@ -110,7 +113,7 @@ class TestHamming(u.TestCase):
         self.assertFalse(diff.any())
 
     def test_random_uints(self):
-        msg = np.random.randint(0, 256, size=(256,), dtype=np.uint8)
+        msg = random.randint(0, 256, size=(256,), dtype=uint8)
 
         encoded = encode_uint(msg)
         decoded = decode_uint(encoded)
