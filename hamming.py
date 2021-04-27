@@ -44,22 +44,22 @@ def __check(part: np.ndarray) -> np.ndarray:
     # either no detectable error, or
     # only one error detected in the syndrome
     if syndrome_err < 2:
-        return recomputed
+        return recomputed[:4]
 
     # 2 or 3 error bits in the syndrome
     # change the data bits for the parity bits to agree
 
     if syndrome_err == 3:
         # flip third bit
-        part[2] ^= 1
-    elif diff[0] == 0:
-        part[3] ^= 1
-    elif diff[1] == 0:
-        part[0] ^= 1
-    else: # diff[2] == 0
-        part[1] ^= 1
+        recomputed[2] ^= 1
+    elif diff[4] == 0:  # first parity
+        recomputed[3] ^= 1
+    elif diff[5] == 0:  # second parity
+        recomputed[0] ^= 1
+    elif diff[6] == 0:  # third parity
+        recomputed[1] ^= 1
 
-    return part
+    return recomputed[:4]
 
 
 def decode_bits(message: np.ndarray) -> np.ndarray:
@@ -74,7 +74,7 @@ def decode_bits(message: np.ndarray) -> np.ndarray:
     parts = []
     for i in range(0, len(message), 7):
         decoded = __check(message[i:i+7])
-        parts.append(decoded[:4])
+        parts.append(decoded)
     return np.concatenate(parts)
 
 
