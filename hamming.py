@@ -8,6 +8,10 @@ __MATRIX__ = np.array([
     [0, 0, 1, 0, 1, 1, 1],
     [0, 0, 0, 1, 0, 1, 1]], dtype=np.uint8)
 
+__MASK__ = np.array([
+    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(16)
+])
+
 
 def encode_uint(message: np.ndarray) -> np.ndarray:
     """encodes a message of uint8 to a binary format with Hamming (7, 4) code
@@ -31,6 +35,19 @@ def encode_bits(message: np.ndarray) -> np.ndarray:
     return np.concatenate([
         np.dot(message[i:i+4], __MATRIX__) % 2 for i in range(0, len(message), 4)
     ])
+
+
+def __check_lookup(part: np.ndarray) -> np.ndarray:
+    "part: np.ndarray(shape=(7,), dtype=np.uint8)"
+
+    # compute the hamming distance with all known codes
+    res = (__MASK__ - part) % 2
+    dist = res.sum(axis=1)
+
+    # get the closest one
+    idx = dist.argmin()
+
+    return __MASK__[idx, :4]
 
 
 def __check(part: np.ndarray) -> np.ndarray:
