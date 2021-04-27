@@ -8,10 +8,6 @@ __MATRIX__ = np.array([
     [0, 0, 1, 0, 1, 1, 1],
     [0, 0, 0, 1, 0, 1, 1]], dtype=np.uint8)
 
-__MASK__ = np.array([
-    np.dot(np.unpackbits(np.array([i], dtype=np.uint8))[-4:], __MATRIX__) % 2 for i in range(16)
-])
-
 
 def encode_uint(message: np.ndarray) -> np.ndarray:
     """encodes a message of uint8 to a binary format with Hamming (7, 4) code
@@ -40,14 +36,30 @@ def encode_bits(message: np.ndarray) -> np.ndarray:
 def __check(part: np.ndarray) -> np.ndarray:
     "part: np.ndarray(shape=(7,), dtype=np.uint8)"
 
-    # compute the hamming distance with all known codes
-    res = (__MASK__ - part) % 2
-    dist = res.sum(axis=1)
+    recomputed = encode_bits(part[:4])
+    diff = (part - recomputed) % 2
 
-    # get the closest one
-    idx = dist.argmin()
+    syndrome_err = np.sum(diff[-3:])
 
-    return __MASK__[idx]
+    # either no detectable error, or
+    # only one error detected in the syndrome
+    if syndrome_err < 2:
+        return recomputed
+
+    # 2 or 3 error bits in the syndrome
+    # change the data bits for the parity bits to agree
+
+    if syndrome_err == 3:
+        # flip third bit
+        part[2] ^= 1
+    elif diff[0] == 0:
+        part[3] ^= 1
+    elif diff[1] == 0:
+        part[0] ^= 1
+    else: # diff[2] == 0
+        part[1] ^= 1
+
+    return part
 
 
 def decode_bits(message: np.ndarray) -> np.ndarray:
