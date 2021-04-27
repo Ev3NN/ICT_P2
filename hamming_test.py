@@ -2,7 +2,7 @@
 
 import unittest as u
 
-from numpy import array, uint8, random
+from numpy import array, uint8, random, unpackbits
 from hamming import decode_uint, encode_uint, encode_bits, decode_bits
 
 
@@ -11,13 +11,13 @@ class TestHamming(u.TestCase):
 
     def check_bit_pair(self, msg: array, exp: array):
         enc = encode_bits(msg)
-        diff = enc - exp
+        diff = enc != exp
 
         self.assertFalse(
             diff.any(), msg=f'\n\t{enc}=encode_bits({msg})\n\t{exp}')
 
         dec = decode_bits(enc)
-        diff = dec - msg
+        diff = dec != msg
 
         self.assertFalse(
             diff.any(), msg=f'\n\t{dec}=decode_bits({dec})\n\t{msg}')
@@ -50,13 +50,13 @@ class TestHamming(u.TestCase):
 
     def check_uint_pair(self, msg: array, exp: array):
         enc = encode_uint(msg)
-        diff = enc - exp
+        diff = enc != exp
 
         self.assertFalse(
             diff.any(), msg=f'\n\t{enc}=encode_uint({msg})\n\t{exp}')
 
         dec = decode_uint(enc)
-        diff = dec - msg
+        diff = dec != msg
 
         self.assertFalse(
             diff.any(), msg=f'\n\t{dec}=decode_uint({dec})\n\t{msg}')
@@ -98,7 +98,7 @@ class TestHamming(u.TestCase):
             enc = array([int(val) for val in encoded], dtype=uint8)
             exp = array([int(val) for val in message], dtype=uint8)
 
-            diff = decode_bits(enc) - exp
+            diff = decode_bits(enc) != exp
             self.assertFalse(diff.any())
 
     def test_random_bits(self):
@@ -108,7 +108,7 @@ class TestHamming(u.TestCase):
         encoded = encode_bits(msg)
         decoded = decode_bits(encoded)
 
-        diff = decoded - msg
+        diff = decoded != msg
 
         self.assertFalse(diff.any())
 
@@ -118,9 +118,23 @@ class TestHamming(u.TestCase):
         encoded = encode_uint(msg)
         decoded = decode_uint(encoded)
 
-        diff = decoded - msg
+        diff = decoded != msg
 
         self.assertFalse(diff.any())
+
+    def test_single_error_recovery(self):
+
+        for value in range(16):
+            expected = unpackbits(array([value], dtype=uint8))[-4:]
+            encoded = encode_bits(expected)
+
+            for i in range(7):
+                body = encoded.copy()
+                body[i] ^= 1 # flip 1 bit
+                actual = decode_bits(body)
+                
+                diff = expected != actual
+                self.assertFalse(diff.any())
 
 
 if __name__ == "__main__":
