@@ -52,7 +52,7 @@ def plot(filename: str) -> None:
     plt.show()
 
 
-def compare_plot(filename: str, transform=eye) -> None:
+def compare_plot(filename: str, title='', transform=eye) -> None:
     """reads a .wav file, transform its content and plot a comparison of the \
         content before and after the transformation.
 
@@ -67,17 +67,24 @@ def compare_plot(filename: str, transform=eye) -> None:
 
     altered = transform(values)
 
+
     _, [ax1, ax2] = plt.subplots(2, 1, sharex=True)
 
+    ax1.set_title(title)
+    ax2.set_xlabel('time (s)')
+
     ax1.plot(time_vals, values)
+    ax1.set_ylabel('original values')
+
     ax2.plot(time_vals, altered)
+    ax2.set_ylabel('altered values')
 
     plt.show()
 
 
 if __name__ == "__main__":
-    compare_plot('sound.wav', channel.alter_uint)
-    compare_plot('sound.wav', lambda x: hamming.decode_uint(
+    compare_plot('sound.wav', 'Alteration from the channel', channel.alter_uint)
+    compare_plot('sound.wav', 'Alteration from the channel with Hamming (4, 7)', lambda x: hamming.decode_uint(
         channel.alter_bits(hamming.encode_uint(x))))
     write('sound.wav', 'sound_altered.wav', channel.alter_uint)
     write('sound.wav', 'sound_hamming_altered.wav', lambda x: hamming.decode_uint(
