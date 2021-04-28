@@ -2,19 +2,26 @@
 
 import numpy as np
 
+
 def alter_uint(data: np.ndarray, prob=0.01) -> np.ndarray:
-    """
+    """flip random bits of the input with probability `prob`
+
+    - data: an array of uint8 encoded in np.uint8 type
+    - prob: a float number
+
+    - returns: an array of uint8 of the same length as the input
     """
 
-    # 1 -> should be flipped
-    flip = np.random.random((8*len(data))) < prob
-    # mask to XOR with
-    mask = np.packbits(flip)
+    return np.packbits(alter_bits(np.unpackbits(data), prob))
 
-    return np.bitwise_xor(data, mask)
 
 def alter_bits(data: np.ndarray, prob=0.01) -> np.ndarray:
-    """
+    """flip random bits of the input with probability `prob`
+
+    - data: an array of bit (0 or 1) encoded in np.uint8 type
+    - prob: a float number
+
+    - returns: an array  of bit of the same length as the input
     """
 
     # 1 -> should be flipped
