@@ -3,8 +3,7 @@ import numpy as np
 
 
 if __name__ == "__main__":
-    msg, _ = lempelziv.encode(
-        np.array([1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0], dtype=np.uint8))
+    msg, _ = lempelziv.encode_bits(np.array([1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0], dtype=np.uint8))
     expected = np.array([1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0], dtype=np.uint8)
     
     if (msg != expected).any():
@@ -20,13 +19,9 @@ if __name__ == "__main__":
         fout.close()
         genome_sl = np.fromfile('genome_sl.txt', dtype=np.uint8)
     
-    #genome_enc, _ = lempelziv.encode(genome)
-    genome_sl_enc, _ = lempelziv.encode(genome_sl)
+    genome_sl_enc, _ = lempelziv.encode_uint(genome_sl)
 
-    #print('compression ratio: input supposed as uint8')
-    #print(f'\t{len(genome) * 8 / len(genome_enc)}')
-
-    print('compression ratio (ignoring non ACTG characters)')
+    print('compression ratio (ignoring non ACTG characters, input encoded with 8 bits per symbol)')
     print(f'\t{len(genome_sl) * 8 / len(genome_sl_enc)}')
     print(f'{len(genome_sl):7} = number of characters')
     print(f'{len(genome_sl_enc):7} = number of encoded bits')

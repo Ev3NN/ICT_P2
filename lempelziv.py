@@ -1,22 +1,30 @@
 "lempelziv: implements the online Lempel-Ziv compression algorithm"
 
-from typing import List, Sequence, Tuple, Dict
+from typing import Tuple, Dict
 import numpy as np
 import math
+
 
 def binary_repr(value: int, width: int) -> np.ndarray:
     "represent an unsigned integer < 2**32 in width bitss"
     return np.unpackbits(np.array([value], dtype='>u8').view(np.uint8))[-width:]
 
+
 def from_bin(repr: np.ndarray) -> int:
     packed = np.packbits(repr)
     return sum(print(v * (256) ** (len(packed) - i - 1)) for i, v in enumerate(packed))
 
-def encode(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
+
+def encode_uint(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
+    """encode a sequence of uint8 (char), returns the encoded message and the dictionary
     """
-    addresses are encoded in a mixed endianess provided by numpy
+    return encode_bits(np.unpackbits(sequence))
+
+
+def encode_bits(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
+    """encode a sequence of bits, returns the encoded message and the dictionary
     """
-    dictionary = {b'' : 0}
+    dictionary = {b'': 0}
 
     next_addr = 1
 
@@ -36,10 +44,8 @@ def encode(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
             if new_word:
                 dictionary[key] = next_addr
 
-            if next_addr == 1:
-                # encode addr in 0 bits (skipped)
-                pass
-            else:
+            # first address is skipped
+            if next_addr != 1:
                 addr_len = math.ceil(math.log2(next_addr))
                 parts.append(binary_repr(prefix_addr, addr_len))
             parts.append(sequence[hi-1:hi])
@@ -47,7 +53,8 @@ def encode(sequence: np.ndarray) -> Tuple[np.ndarray, Dict[bytes, int]]:
             next_addr += 1
 
             lo = hi
+            prefix_key = b''
         else:
             prefix_key = key
-    
+
     return np.concatenate(parts), dictionary
