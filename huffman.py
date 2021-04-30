@@ -70,18 +70,18 @@ def build_tree(nodes):
 
     return nodes
 
-# def main():
-#     # Data from ex 7: https://people.montefiore.uliege.be/asutera/ict_tp/tp2_2020-2021.pdf
-#     freq = {'A': 0.05, 'B': 0.1, 'C': 0.15, 'D': 0.15, 'E': 0.2, 'F': 0.35}
-#     freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+def main():
+    # Data from ex 7: https://people.montefiore.uliege.be/asutera/ict_tp/tp2_2020-2021.pdf
+    freq = {'A': 0.05, 'B': 0.1, 'C': 0.15, 'D': 0.15, 'E': 0.2, 'F': 0.35}
+    freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
 
-#     nodes = build_tree(freq)
-#     huffmanCode = huffman_code_tree(nodes[0][0])
+    nodes = build_tree(freq)
+    huffmanCode = huffman_code_tree(nodes[0][0])
     
-#     print(' Char | Huffman code ')
-#     print('----------------------')
-#     for (char, _) in freq:
-#         print(' %-4r |%12s' % (char, huffmanCode[char]))
+    print(' Char | Huffman code ')
+    print('----------------------')
+    for (char, _) in freq:
+        print(' %-4r |%12s' % (char, huffmanCode[char]))
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

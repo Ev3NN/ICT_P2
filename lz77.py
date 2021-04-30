@@ -1,6 +1,6 @@
 import string
 
-L = 3
+L = 7
 
 def compute_codeword(s_buffer, la_buffer):
     """
