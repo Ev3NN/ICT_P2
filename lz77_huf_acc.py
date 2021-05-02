@@ -93,16 +93,12 @@ def compute_freq(filename):
 def huffman_genome(src, dest):
     #--- Computes frequencies and builds tree
     freq = compute_freq(src)
-    freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
-    nodes = huf.build_tree(freq)
-    huffmanCode = huf.huffman_code_tree(nodes[0][0])
+    huff_dic = huf.build_dict(freq)
 
-    huff_dic = {}
     print(' Char | Huffman code ')
     print('----------------------')
-    for char, p in freq:
-        print(' %-4r |%12s' % (char, huffmanCode[char]))
-        huff_dic[char] = huffmanCode[char]
+    for char, _ in freq.items():
+        print(' %-4r |%12s' % (char, huff_dic[char]))
         
     #--- Edits lz77-compressed files
     
