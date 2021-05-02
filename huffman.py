@@ -6,6 +6,8 @@ from typing import Dict, Any, Sequence, Tuple
 import re
 from collections import Counter
 
+import numpy
+
 
 def __finilize(tree: Tuple, representation: Sequence[str], prefix: str = '') -> None:
     """given a tree as a pair (prob, subtree), a representation as a list of
@@ -58,32 +60,42 @@ def build_dict(table: Dict[Any, float]) -> Dict[Any, str]:
     return dict(zip(table.keys(), build_list(probabilities)))
 
 
-def encode_genome():
-    """read the genome, comptes the Huffman encoding, the expected average
-    length and the compression ratio.
+def stats(sequence, card=1):
+    """read a sequence, comptes the Huffman encoding, the expected average
+    length, the compression ratio and the entropy.
+
+    card: half of the cardinality of the symbol space
 
     takes about 100ms"""
 
-    with open('genome.txt') as file:
-        genome = ''.join(file.read().split('\n'))
-        codons = re.findall('...', genome)  # group by 3
-        ctr = Counter(codons)
-        ctr = {k: v / len(genome) for k, v in ctr.items()}
-        code = build_dict(ctr)
+    ctr = Counter(sequence)
+    ctr = {k: v / len(sequence) for k, v in ctr.items()}
 
-        expected_length = 0
-        for prob, encoding in zip(ctr.values(), code.values()):
-            expected_length += prob * len(encoding)
+    code = build_dict(ctr)
 
-        print(f'{expected_length=}')
-        encoded = ''.join(code[c] for c in codons)
-        print(f'{2*len(genome)=} / {len(encoded)=} = ', end='')
-        print(f'{2*len(genome) / len(encoded)}')
+    expected_length = 0
+    for prob, encoding in zip(ctr.values(), code.values()):
+        expected_length += prob * len(encoding)
+    print(f'{expected_length=}')
+
+    encoded = ''.join(code[c] for c in sequence)
+    print(f'{card*len(sequence)=} / {2*len(encoded)=} = ', end='')
+    print(f'{card*len(sequence) / (2*len(encoded))}')
+
+    values = numpy.fromiter(ctr.values(), dtype=float)
+    entropy = -numpy.dot(values, numpy.log2(values))
+    print(f'{entropy=}')
+
 
 
 if __name__ == "__main__":
     print(build_list([0.1, 0.2, 0.2, 0.3, 0.2]))
     print(build_dict({'A': 0.05, 'B': 0.1, 'C': 0.15,
                       'D': 0.15, 'E': 0.2, 'F': 0.35}))
-    print(build_dict({}))
-    print(build_dict({'A': 1.0}))
+
+    with open('genome.txt') as file:
+        genome = ''.join(file.read().split('\n'))
+        stats(genome, 4)
+
+        codons = re.findall('...', genome)  # group by 3
+        stats(codons, 12)
