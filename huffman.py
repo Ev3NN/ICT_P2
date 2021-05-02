@@ -3,6 +3,9 @@
 import heapq
 from typing import Dict, Any, Sequence, Tuple
 
+import re
+from collections import Counter
+
 
 def __finilize(tree: Tuple, representation: Sequence[str], prefix: str = '') -> None:
     """given a tree as a pair (prob, subtree), a representation as a list of
@@ -53,6 +56,29 @@ def build_dict(table: Dict[Any, float]) -> Dict[Any, str]:
 
     probabilities = table.values()
     return dict(zip(table.keys(), build_list(probabilities)))
+
+
+def encode_genome():
+    """read the genome, comptes the Huffman encoding, the expected average
+    length and the compression ratio.
+
+    takes about 100ms"""
+
+    with open('genome.txt') as file:
+        genome = ''.join(file.read().split('\n'))
+        codons = re.findall('...', genome)  # group by 3
+        ctr = Counter(codons)
+        ctr = {k: v / len(genome) for k, v in ctr.items()}
+        code = build_dict(ctr)
+
+        expected_length = 0
+        for prob, encoding in zip(ctr.values(), code.values()):
+            expected_length += prob * len(encoding)
+
+        print(f'{expected_length=}')
+        encoded = ''.join(code[c] for c in codons)
+        print(f'{2*len(genome)=} / {len(encoded)=} = ', end='')
+        print(f'{2*len(genome) / len(encoded)}')
 
 
 if __name__ == "__main__":
